@@ -1,0 +1,211 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_0000;
+origin  : BMW TI-430 Gerd Huber;
+revision: 1.25;
+author  : BMW TI-433 Teepe, BMW TI-430 Gerd Huber;
+comment : BC1, BC1RD, ZKE3, ZKE4, ZKE5, ZKE5_S12;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+
+//      *** SG - PARAMETER ***
+//
+//      Concept             5/6 (DS1, DS2)
+//      Baudrate            9600
+//      Wakeup-Address      0x00
+//      Wakeup-Time         0 ms
+//      Idle-Time           0 ms
+//      Timeout-Time        500 ms
+//      Regeneration-Time   25 ms
+//      Telegram end time   20 ms
+//      Byte to byte time   0 ms
+//
+//      Answer length       -1
+//      Answer offset       0
+
+int CONCEPT_5[] = {5,9600,0x00,0,0,500,25,20,0};
+int CONCEPT_6[] = {6,9600,0x00,0,0,500,25,20,0};
+int AWLEN[] = {-1,0};
+
+char REQUEST_IDENT[]  = {0x00, 0x04, 0x00};
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 63
+// 64
+// 65
+// 66
+// 67
+// 68
+// 69
+// 70
+// 71
+// 72
+// 73
+// 74
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Init-Job fuer Grundmodule;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1 wenn Okay;
+   )
+{
+    open_communication();
+
+    stop_frequent();
+
+    set_repeat_counter(2);
+
+    set_communication_pars(CONCEPT_6);
+
+    set_answer_length(AWLEN);
+
+    DONE = 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 110
+// 111
+// 112
+// 113
+// 114
+// 115
+// 116
+// 117
+// 118
+// 119
+// 120
+// 121
+// 122
+// 123
+// 124
+// 125
+// 126
+// 127
+// 128
+// 129
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : IDENTIFIKATION;
+      comment   : Ermittlung der SG Variante;
+      comment   : Zur Gruppe gehoerende Varianten:;
+      comment   : ZKE III (E38 alt) : Konzept 6/5 (DS2/DS1);
+      comment   : ZKE IV  (E36)     : Konzept 5   (DS1);
+      comment   : ZKE V   (E46)     : Konzept 6   (DS2);
+      comment   : BC1     (R50)     : Konzept 6   (DS2);
+      comment   : BC1RD   (R50)     : Konzept 6   (DS2);
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : Der zurueckgelieferte Name entspricht dem Namen der;
+        comment : Datei fuer die Varianten-SGBD;
+   )
+{
+	unsigned char antwort[];
+	unsigned char auftrag[];
+
+
+  auftrag = REQUEST_IDENT;
+
+  set_trap_mask(0x180000);
+  send_and_receive(antwort, REQUEST_IDENT);
+
+  set_trap_mask(0);
+
+  if(antwort[2] != 0xa0) {
+    set_communication_pars(CONCEPT_5);
+    dataclear(antwort);
+    send_and_receive(antwort, REQUEST_IDENT);
+  }
+
+  // 164
+  // 165
+  // 166
+
+  if(datalen(antwort) <= 9)
+    return;
+
+  if(0 <= antwort[9] && antwort[9] < 0x20) {
+    VARIANTE = "ZKE4";
+    return;
+  }
+
+  if(0x20 <= antwort[9] && antwort[9] < 0x40) {
+    VARIANTE = "ZKE3";
+    return;
+  }
+
+  if(0x40 <= antwort[9] && antwort[9] < 0x60) {
+    switch(antwort[9]) {
+      case 0x40:
+      case 0x50:
+      case 0x41:
+      case 0x51:
+      case 0x42:
+      case 0x52:
+        VARIANTE = "ZKE5";
+        return;
+      case 0x45:
+      case 0x55:
+      case 0x46:
+      case 0x56:
+        VARIANTE = "ZKE5_S12";
+        return;
+    }
+  }
+
+  if(0xa0 <= antwort[9] && antwort[9] <= 0xaf) {
+    switch(antwort[9]) {
+      case 0xa0:
+        VARIANTE = "BC1";
+        return;
+      case 0xa3:
+        VARIANTE = "BC1RD";
+        return;
+    }
+  }
+
+}
