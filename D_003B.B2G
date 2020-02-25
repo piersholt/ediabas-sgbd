@@ -1,0 +1,224 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_003B;
+origin  : BMW TP-431 Rochal;
+revision: 1.07;
+author  : BMW TP-422 Helmich, BMW TP-422 Teepe, BMW TI-431 Weber;
+comment : VIDEO_GT, NAVMK4, NAVMK4_2;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+
+//      *** SG - PARAMETER ***
+//
+//      Concept             5/6 (DS1, DS2)
+//      Baudrate            9600
+//      Wakeup-Address      0x3b
+//      Wakeup-Time         200 ms
+//      Idle-Time           25 ms
+//      Timeout-Time        500 ms
+//      Regeneration-Time   100 ms
+//      Telegram end time   500 ms
+//      Byte to byte time   0 ms
+//
+//      Answer length       -1
+//      Answer offset       0
+
+int CONCEPT_5[] = {5,9600,0x3b,200,25,500,100,500};
+int CONCEPT_6[] = {6,9600,0x3b,200,25,500,100,500};
+int AWLEN[] = {-1,0};
+char REQUEST_IDENT[] = {0x3b, 0x04, 0x00};
+
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 63
+// 64
+// 65
+// 66
+// 67
+// 68
+// 69
+// 70
+// 71
+// 72
+// 73
+// 74
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+// 82
+// 83
+// 84
+// 85
+// 86
+// 87
+// 88
+// 89
+// 90
+// 91
+// 92
+// 93
+// 94
+// 95
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Init-Job fuer video_grafikteil;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1 wenn Okay;
+   )
+{
+    unsigned char antwort[];
+
+    open_communication();
+
+    stop_frequent();
+
+    set_repeat_counter(2);
+
+    set_communication_pars(CONCEPT_6);
+
+    set_answer_length(AWLEN);
+
+    set_trap_mask(0x180000);
+
+    send_and_receive(antwort, REQUEST_IDENT);
+
+    if(antwort[2] != 0xa0) {
+      set_communication_pars(CONCEPT_5); }
+
+    set_trap_mask(0);
+
+    DONE = 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 135
+// 136
+// 137
+// 138
+// 139
+// 140
+// 141
+// 142
+// 143
+// 144
+// 145
+// 146
+// 147
+// 148
+// 149
+// 150
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : IDENTIFIKATION;
+      comment   : Ermittlung der SG Variante;
+      comment   : Zur Gruppe gehoerende Varianten:;
+      comment   : VIDEO_GT : Konzept 5 (DS1);
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : Der zurueckgelieferte Name entspricht dem Namen der;
+        comment : Datei fuer die Varianten-SGBD;
+   )
+{
+  unsigned char answer[];
+
+  unsigned char ergebnis[];
+
+  int diag_index;
+
+  set_trap_mask(0x180000);
+  send_and_receive(answer, REQUEST_IDENT);
+  if(answer[2] != 0xa0)
+  {
+    set_communication_pars(CONCEPT_5);
+    set_trap_mask(0x180000);
+    send_and_receive(answer, REQUEST_IDENT);
+  }
+  if(answer[2] == 0xa0)
+  {
+
+    set_trap_mask(0);
+
+    // PADDING
+    // 184
+    // 185
+    // 186
+    // 187
+    // 188
+    // 189
+    // 190
+    // 191
+    // 192
+    // 193
+    // 194
+    // 195
+    // 196
+    // 197
+    // 198
+    // 199
+    // 200
+    // 201
+    // 202
+
+    dataclear(ergebnis);
+    datacopy(ergebnis,answer,0x0e,0x02);
+    ergebnis[2] = 0x00;
+    diag_index = atoi(ergebnis);
+
+    if(VARIANTE)
+    {
+      switch(diag_index)
+      {
+        case 0x05: VARIANTE = "NAVMK4";
+        break;
+        case 0x06: VARIANTE = "NAVMK4_2";
+        break;
+        default: VARIANTE = "VIDEO_GT";
+        break;
+      }
+    }
+    // 221
+    // 222
+  }
+}
