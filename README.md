@@ -17,3 +17,4 @@ File|BEST Object File|BIP Ver.|Rev. Number|Last Mod.
 `D_003B.B2G`|`D_003B.GRP`|`05.05.00`|`1.7`|`Thu Apr 08 09:58:08 2004`
 `D_007F.B2G`|`D_007F.GRP`|`05.05.00`|`1.20`|`Thu Apr 08 09:58:36 2004`
 `D_00D0.B2G`|`D_00D0.GRP`|`05.05.00`|`1.51`|`Thu Feb 12 16:47:56 2004`
+`D_00ED.B2G`|`D_00ED.GRP`|`05.05.00`|`1.14`|`Thu Feb 12 16:51:12 2004`

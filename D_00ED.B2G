@@ -1,0 +1,199 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_00ED;
+origin  : BMW TI-431 Weber;
+revision: 1.14;
+author  : BMW TI-433 Teepe, BMW TI-433 Helmich, BMW TI-431 Rochal, BMW TI-431 Weber;
+comment : VIDEO_TV, VIDEOMOD,VIDEO_3, VM5IBUS, VIDHIBUS;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+
+//      *** SG - PARAMETER ***
+//
+//      Concept             5/6 (DS1, DS2)
+//      Baudrate            9600
+//      Wakeup-Address      0xed
+//      Wakeup-Time         0 ms
+//      Idle-Time           0 ms
+//      Timeout-Time        500 ms
+//      Regeneration-Time   25 ms
+//      Telegram end time   20 ms
+//      Byte to byte time   0 ms
+//
+//      Answer length       -1
+//      Answer offset       0
+
+int CONCEPT_5[] = {5,9600,0xed,0,0,500,25,20,0};
+int CONCEPT_6[] = {6,9600,0xed,0,0,500,25,20,0};
+int AWLEN[] = {-1,0};
+char REQUEST_IDENT[] = {0xed, 0x04, 0x00};
+
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 63
+// 64
+// 65
+// 66
+// 67
+// 68
+// 69
+// 70
+// 71
+// 72
+// 73
+// 74
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+// 82
+// 83
+// 84
+// 85
+// 86
+// 87
+// 88
+// 89
+// 90
+// 91
+// 92
+// 93
+// 94
+// 95
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Init-Job fuer Video TV-Teil;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1 wenn Okay;
+   )
+{
+  open_communication();
+  stop_frequent();
+  set_repeat_counter(2);
+  set_answer_length(AWLEN);
+  DONE = 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 118
+// 119
+// 120
+// 121
+// 122
+// 123
+// 124
+// 125
+// 126
+// 127
+// 128
+// 129
+// 130
+// 131
+// 132
+// 133
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : IDENTIFIKATION;
+      comment   : Ermittlung der SG Variante;
+      comment   : Zur Gruppe gehoerende Varianten:;
+      comment   : VIDEO_TV,VIDEOMOD (DS1);
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : Der zurueckgelieferte Name entspricht dem Namen der;
+        comment : Datei fuer die Varianten-SGBD;
+   )
+{
+  unsigned char antwort[];
+
+  // 149
+  // 150
+  // 150
+  set_trap_mask(0x180000);
+
+  // 154
+  set_communication_pars(CONCEPT_6);
+
+  send_and_receive(antwort, REQUEST_IDENT);
+
+  // 159
+  // 160
+  if(antwort[0] != 0xed)
+  {
+    send_and_receive(antwort, REQUEST_IDENT);
+  }
+
+  // 166
+  set_trap_mask(0);
+
+  if(antwort[2] != 0xa0)
+  {
+    // 171
+    set_communication_pars(CONCEPT_5);
+    send_and_receive(antwort, REQUEST_IDENT);
+  }
+
+  // 176
+  // 177
+  if(antwort[2] == 0xa0) {
+    // 179
+    // 180
+    // 181
+    // 182
+    switch(antwort[9]) {
+      case 0x00: VARIANTE = "VIDEO_TV";
+      return;
+      case 0x01: VARIANTE = "VIDEO_TV";
+      return;
+      case 0x02: VARIANTE = "VIDEOMOD";
+      return;
+      case 0x03: VARIANTE = "VIDEO_3";
+      return;
+      case 0x05: VARIANTE = "VM5IBUS";
+      return;
+      case 0x06: VARIANTE = "VIDHIBUS";
+      return;
+      // 196
+    }
+  }
+}
