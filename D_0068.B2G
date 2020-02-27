@@ -1,0 +1,126 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_0068;
+origin  : BMW TI-431 Weber;
+revision: 1.27;
+author  : BMW TP-421 Spoljarec, BMW TP-422 Teepe;
+comment : RADIO;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 43
+// 44
+// 45
+// 46
+// 47
+// 48
+// 49
+// 50
+// 51
+// 52
+// 53
+// 54
+// 55
+// 56
+// 57
+// 58
+// 59
+// 60
+// 61
+// 62
+// 63
+// 64
+// 65
+// 66
+// 67
+// 68
+// 69
+// 70
+// 71
+// 72
+// 73
+// 74
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+// 82
+// 83
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Einstellen der Kommunikationsparameter;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1, wenn i.O.;
+   )
+{
+  // 96
+  // 97
+  DONE = 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 104
+// 105
+// 106
+// 107
+// 108
+// 109
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : IDENTIFIKATION;
+      comment   : Ermittlung der SG Variante;
+      comment   : Zur Gruppe gehoerende Varianten:;
+      comment   : MFL : Konzept DS1;
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : Der zurueckgelieferte Name entspricht dem Namen der;
+        comment : Datei fuer die Varianten-SGBD;
+   )
+{
+  // 123
+  // 124
+  VARIANTE = "RADIO";
+}
