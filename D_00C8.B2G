@@ -1,0 +1,191 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_00C8;
+origin  : BMW TI-431 Rochal;
+revision: 1.40;
+author  : BMW TI-431 Teepe, BMW TI-431 Spoljarec, TI-431 Krueger, TI-431 Gelfert, BMW TI-431 Rochal;
+comment : BIT, TELEFON, BIT2, ULF, TELIBUS, TELIBUS2;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+
+//      *** SG - PARAMETER ***
+//
+//      Concept             5/6 (DS1, DS2)
+//      Baudrate            9600
+//      Wakeup-Address      0xc8
+//      Wakeup-Time         0 ms
+//      Idle-Time           15 ms
+//      Timeout-Time        2500 ms
+//      Regeneration-Time   25 m
+//      Telegram end time   20 m
+//      Byte to byte time   1 ms
+//
+//      Answer length       -1
+//      Answer offset       0
+
+int CONCEPT_5[] = {5,9600,0xc8,0,15,2500,25,20,1};
+int CONCEPT_6[] = {6,9600,0xc8,0,15,2500,25,20,1};
+int AWLEN[] = {-1,0};
+
+char REQUEST_IDENT[] = {0xc8, 0x04, 0x00};
+
+table DI_Tabelle[2] []=
+{
+  { "DI", "VARIANTE" },
+  { "04", "TELEFON" },
+  { "07", "BIT" },
+  { "10", "BIT2" },
+  { "15", "ULF" },
+  { "20", "TELIBUS" },
+  { "21", "TELIBUS2" }
+};
+
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+// 82
+// 83
+// 84
+// 85
+// 86
+// 87
+// 88
+// 89
+// 90
+// 91
+// 92
+// 93
+// 94
+// 95
+// 96
+// 97
+// 98
+// 99
+// 100
+// 101
+// 102
+// 103
+// 104
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Einstellen der Kommunikationsparameter;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1, wenn i.O.;
+   )
+{ // 116
+  // 117
+  open_communication();
+  stop_frequent();
+  set_repeat_counter(1);
+  set_answer_length(AWLEN);
+  set_communication_pars(CONCEPT_6);
+
+  DONE = 1;
+}
+// 126
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 130
+////////////////////////////////////////////////////////////////////////
+//          PN          HW CI DI BI MM YY SU SW
+// C8 10 A0 88 37 74 00 03 00 03 07 00 00 23 03 B4
+// C8 10 A0 86 95 55 22 10 04 15 13 07 05 57 71 0A
+
+job(  name      : IDENTIFIKATION;
+      comment   : Ermittlung der SG Variante;
+      comment   : Zur Gruppe gehoerende Varianten:;
+      comment   : TELEFON : Konzept DS1;
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : Der zurueckgelieferte Name entspricht dem Namen der;
+        comment : Datei fuer die Varianten-SGBD;
+   )
+{ // 146
+  unsigned char antwort[];      // 1e
+  unsigned char diag_index[];   // 1f
+  unsigned char variante[];     // 20
+  unsigned char temp[];         // 21
+  unsigned char buffer[];       // 22
+
+  send_and_receive(antwort, REQUEST_IDENT);
+
+  dataclear(temp); // 21
+  dataclear(diag_index); // 1f
+  // 0x01 = frame length
+  datacopy(temp,antwort,0x01,0x01);
+  temp[1] = 0x00;
+
+
+  if(temp[0] == 0x10) // BCD encoded ident
+  {
+    bcd2ascii(buffer, antwort, 9, 1);   // 0x03 => "03"
+    diag_index = atoi(buffer);          // "03" => 3
+
+    tabset("DI_Tabelle");
+
+    if(tabseek("DI", diag_index))
+    {
+      tabget(variante, "Variante");
+      VARIANTE = variante;
+      return;
+    }
+  }
+  else if(temp[0] == 0x23) // ASCII encoded ident
+  {
+    datacopy(diag_index,antwort,0x0e,0x02); // { 0x30, 0x33 }
+    diag_index[2] = 0x00;                   // { 0x30, 0x33, 0x00 }
+
+    tabset("DI_Tabelle");
+
+    if(tabseek("DI", diag_index))
+    {
+      tabget(variante, "Variante");
+      VARIANTE = variante;
+      return;
+    }
+  }
+
+}
