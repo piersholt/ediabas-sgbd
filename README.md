@@ -21,6 +21,7 @@ Source File|BEST Object File|BIP Ver.|Rev. Number|Last Mod.
 `D_00C8.B2G`|`D_00C8.GRP`|`05.05.00`|`1.40`|`Thu Feb 26 12:33:14 2004`
 `D_00D0.B2G`|`D_00D0.GRP`|`05.05.00`|`1.51`|`Thu Feb 12 16:47:56 2004`
 `D_00ED.B2G`|`D_00ED.GRP`|`05.05.00`|`1.14`|`Thu Feb 12 16:51:12 2004`
+`D_ZKE_GM.B2G`|`D_ZKE_GM.GRP`|`05.05.00`|`1.04`|`Thu Jun 05 16:47:10 2003`
 
 ## Debugging with BestView
 
