@@ -210,7 +210,7 @@ job(  name      : IDENTIFIKATION;
 
   if(0x80 <= antwort[9] && antwort[9] <= 0xa0) {
     switch(antwort[9]) {
-      case 0x81:
+      case 0x80:
       case 0x81:
         VARIANTE = "ZKE3_GM4";
         return;
