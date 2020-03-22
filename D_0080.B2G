@@ -1,0 +1,355 @@
+// Copyright 2020 Piers Holt
+//
+// This file is part of EDIABAS-SGBD.
+//
+// EDIABAS-SGBD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// EDIABAS-SGBD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with EDIABAS-SGBD. If not, see <https://www.gnu.org/licenses/>.
+//
+////////////////////////////////////////////////////////////////////////
+//                         W A R N I N G !
+//
+// This BEST/2 source file has been created by disassembling the
+// corresponding BEST object file. It is strictly a reference, and is
+// not intended, nor suitable, for creating ECU description files
+// (SGBDs). Any reference, be it explicit, or implied, to BMW is solely
+// a result of the disassembly process.
+////////////////////////////////////////////////////////////////////////
+//                           H E A D E R
+////////////////////////////////////////////////////////////////////////
+
+ecu     : D_0080;
+origin  : BMW TI-431 Nau;
+revision: 1.61;
+author  : BMW TP-422 Teepe, BMW TP-422 Boehmig, BMW TP-421 Drexel, BMW TP-422 Zender, BMW TI-431 Dennert, BMW TI-435 Crichton;
+comment : KOMBI36C, IKE, IKI, KOMBI39, KOMBI39C, KOMBI46, KOMBI52, KOMBIR30, KOMBIR40, KOMBIL30, KOMBIL50, KOMBIR50, KOMBI50F, KOMBI85, KOMBI46R;
+
+////////////////////////////////////////////////////////////////////////
+//                        K O N S T A N T E N
+////////////////////////////////////////////////////////////////////////
+
+//      *** SG - PARAMETER ***
+//
+//      Concept             5/6 (DS1, DS2)
+//      Baudrate            9600
+//      Wakeup-Address      0x00
+//      Wakeup-Time         0 ms
+//      Idle-Time           0 ms
+//      Timeout-Time        500 ms
+//      Regeneration-Time   25 ms
+//      Telegram end time   20 ms
+//      Byte to byte time   0 ms
+//
+//      Answer length       -1
+//      Answer offset       0
+
+int CONCEPT_5[] = {5,9600,0x80,0,0,500,25,20,0};
+int CONCEPT_6[] = {6,9600,0x80,0,0,500,25,20,0};
+int AWLEN[] = {-1,0};
+
+char REQUEST_IDENT[]  = {0x80, 0x04, 0x00};
+////////////////////////////////////////////////////////////////////////
+//                          P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 63
+// 64
+// 65
+// 66
+// 67
+// 68
+// 69
+// 70
+// 71
+// 72
+// 73
+// 74
+// 75
+// 76
+// 77
+// 78
+// 79
+// 80
+// 81
+// 82
+// 83
+// 84
+// 85
+// 86
+// 87
+// 88
+// 89
+// 90
+// 91
+// 92
+// 93
+// 94
+// 95
+// 96
+// 97
+// 98
+// 99
+// 100
+// 101
+// 102
+// 103
+// 104
+// 105
+// 106
+// 107
+// 108
+// 109
+// 110
+// 111
+// 112
+// 113
+////////////////////////////////////////////////////////////////////////
+//                              J O B S
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : INITIALISIERUNG;
+      comment   : Setting of communication parameters;
+      result    : DONE;
+        type    : int;
+        defrslt : ;
+        comment : 1, if O.K.;
+   )
+{
+  // 126
+  // 127
+  open_communication();
+  stop_frequent();
+
+  set_repeat_counter(2);
+  set_communication_pars(CONCEPT_6);
+  set_answer_length(AWLEN);
+  DONE = 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                           P A D D I N G
+////////////////////////////////////////////////////////////////////////
+// 140
+// 141
+// 142
+// 143
+// 144
+// 145
+////////////////////////////////////////////////////////////////////////
+
+job(  name      : IDENTIFIKATION;
+      comment   : Determination of the ECU version;
+      comment   : To the group belonging versions;
+      comment   : IKE     : Kombi E38/E53, Concepts DS1, DS2;
+      comment   : IKI     : Integrated IKE from 03/97, Concept DS2;
+      comment   : KOMBI36C: Low-Kombi E36 with CAN, Concept DS2;
+      comment   : KOMBI39 : Low-Kombi E39, Concept DS2;
+      comment   : KOMBI39C: Low-Kombi E39/E53 with CAN, Concept DS2;
+      comment   : KOMBI46 : Kombi E46, Concept DS2;
+      comment   : KOMBI52 : Kombi E52, Concept DS2;
+      comment   : KOMBI85 : Kombi E83/E85, Concept DS2;
+      comment   : KOMBIR50: Kombi R50, Concept DS2;
+      comment   : KOMBI50F: Kombi R50 with error memory, Concept DS2;
+      comment   : KOMBIR40: Kombi R40/R41, Concept DS2;
+      comment   : KOMBIL30: Kombi L30, Concept DS2;
+      comment   : KOMBIR30: Kombi R30, Concept DS2;
+      comment   : KOMBIL50: Kombi L50, Concept DS2;
+      result    : VARIANTE;
+        type    : string;
+        defrslt : ;
+        comment : The name sent back corresponds to the name of the;
+        comment : file for the Version-SGBD;
+   )
+{
+	unsigned char answer[];    // 0x1e S2
+  int diagnose_index;        // 0x1c S0
+
+  // 175
+  // 176
+  set_trap_mask(0x180000);
+  send_and_receive(answer, REQUEST_IDENT);
+  if(answer[2] != 0xa0)
+  {
+    set_communication_pars(CONCEPT_5);
+    set_trap_mask(0x180000);
+    send_and_receive(answer, REQUEST_IDENT);
+  }
+  if(answer[2] == 0xa0)
+  {
+
+    set_trap_mask(0);
+    diagnose_index = (((answer[9] & 0xf0) >> 0x04) * 0x0a) + (answer[9] & 0x0f);
+
+    // 191
+    // 192
+
+    if((answer[3] & 0xf0) == 0xd0)
+    {
+      // KOMBIR40: Kombi R40/R41, Concept DS2;
+      if(diagnose_index == 0x01 || diagnose_index == 0x02 || diagnose_index >= 0x50 && diagnose_index <= 0x54)
+      {
+          VARIANTE = "KOMBIR40";
+          return;
+      }
+
+      // 203
+      // 204
+      // 205
+      // 206
+      // 207
+
+    }
+
+    // 211
+    // 212
+
+    else
+    {
+      // KOMBIR50: Kombi R50, Concept DS2;
+      if(diagnose_index >= 0x55 && diagnose_index <= 0x56)
+      {
+        VARIANTE = "KOMBIR50";
+        return;
+      }
+
+      // 223
+
+      // KOMBI50F: Kombi R50 with error memory, Concept DS2;
+      if(diagnose_index >= 0x57 && diagnose_index <= 0x59)
+      {
+        VARIANTE = "KOMBI50F";
+        return;
+      }
+
+      // 232
+      // 233
+      // 234
+      // 235
+
+      // KOMBIL50: Kombi L50, Concept DS2;
+      if(diagnose_index >= 0x5f && diagnose_index <= 0x63)
+      {
+        VARIANTE = "KOMBIL50";
+        return;
+      }
+
+
+      // KOMBIL30: Kombi L30, Concept DS2;
+      if(diagnose_index >= 0x41 && diagnose_index <= 0x45)
+      {
+        VARIANTE = "KOMBIL30";
+        return;
+      }
+
+      // 252
+
+      // KOMBIR30: Kombi R30, Concept DS2;
+      if(diagnose_index >= 0x46 && diagnose_index <= 0x4f)
+      {
+        VARIANTE = "KOMBIR30";
+        return;
+      }
+
+      // 261
+
+      // IKE     : Kombi E38/E53, Concepts DS1, DS2;
+      if(diagnose_index >= 0x01 && diagnose_index <= 0x04)
+      {
+        VARIANTE = "IKE";
+        return;
+      }
+
+      // 270
+      // 271
+      // 272
+
+      // IKI     : Integrated IKE from 03/97, Concept DS2;
+      if(diagnose_index >= 0x05 && diagnose_index <= 0x0e)
+      {
+        VARIANTE = "IKI";
+        return;
+      }
+
+      // 281
+      // 282
+      // 283
+
+      // KOMBI85 : Kombi E83/E85, Concept DS2;
+      if(diagnose_index >= 0x14 && diagnose_index <= 0x1d)
+      {
+        VARIANTE = "KOMBI85";
+        return;
+      }
+
+      // 292
+
+      // KOMBI39 : Low-Kombi E39, Concept DS2;
+      if(diagnose_index >= 0x1e && diagnose_index <= 0x1f)
+      {
+        VARIANTE = "KOMBI39";
+        return;
+      }
+
+      // 301
+
+      // KOMBI39C: Low-Kombi E39/E53 with CAN, Concept DS2;
+      if(diagnose_index >= 0x20 && diagnose_index <= 0x28)
+      {
+        VARIANTE = "KOMBI39C";
+        return;
+      }
+
+      // 310
+      // 311
+      // 312
+
+      // KOMBI52 : Kombi E52, Concept DS2;
+      if(diagnose_index >= 0x29 && diagnose_index <= 0x2f)
+      {
+        VARIANTE = "KOMBI52";
+        return;
+      }
+
+      // 321
+
+      // KOMBI46 : Kombi E46, Concept DS2;
+      if(diagnose_index >= 0x30 && diagnose_index <= 0x35)
+      {
+        VARIANTE = "KOMBI46";
+        return;
+      }
+
+      // 330
+      // 331
+      // 332
+
+      // KOMBI46R?
+      if(diagnose_index >= 0x36 && diagnose_index <= 0x40)
+      {
+        VARIANTE = "KOMBI46R";
+        return;
+      }
+
+      // 341
+      // 342
+
+      // KOMBI36C: Low-Kombi E36 with CAN, Concept DS2;
+      if(diagnose_index >= 0x5a && diagnose_index <= 0x5e)
+      {
+        VARIANTE = "KOMBI36C";
+        return;
+      }
+
+      // 351
+
+    }
+  }
+}
