@@ -1,5 +1,7 @@
 # ediabas-sgbd
 
+*Decompiled ECU description files (BEST object files) for BMW's EDIABAS*
+
 ## Overview
 
 The source files are functionally equivalent to those used to create the BEST object files distributed with EDIABAS.
